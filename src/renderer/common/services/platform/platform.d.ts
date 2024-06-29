@@ -44,6 +44,23 @@ export interface LogBody {
   message: string;
 }
 
+export interface LogObj {
+  time: string;
+  content: string;
+}
+
+export interface Plugin {
+  id?: number;
+  code?: string;
+  type?: string;
+  title?: string;
+  author?: string;
+  description?: string;
+  tags?: string[];
+  icon?: string;
+  source?: string; // custom, third-party
+}
+
 export interface GenericConfig {
   appId: string;
   instanceId: string;
@@ -55,6 +72,8 @@ export interface GenericConfig {
   contextCount: number;
   waitHumansTime: number;
   defaultReply: string;
+  truncateWordCount: number;
+  truncateWordKey: string;
 }
 
 export interface LLMConfig {
@@ -74,7 +93,7 @@ export interface PluginConfig {
   appId: string;
   instanceId: string;
   usePlugin: boolean;
-  pluginCode: string;
+  pluginId: number;
 }
 
 export interface DriverConfig {
@@ -107,8 +126,27 @@ export interface MessageModel {
 export interface Keyword {
   id?: number;
   mode?: string;
-  ptf_name?: string;
+  app_name?: string;
   platform_id?: string;
   keyword: string;
   reply: string;
+}
+
+export interface TransferKeyword {
+  id?: number;
+  keyword: string;
+  app_id?: string;
+  fuzzy?: boolean;
+  has_regular?: boolean;
+  app_name?: string;
+}
+
+export interface ReplaceKeyword {
+  id?: number;
+  keyword: string;
+  replace: string;
+  app_id?: string;
+  fuzzy?: boolean;
+  has_regular?: boolean;
+  app_name?: string;
 }

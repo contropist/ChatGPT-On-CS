@@ -49,6 +49,8 @@ export interface GenericConfig {
   contextCount: number;
   waitHumansTime: number;
   defaultReply: string;
+  truncateWordCount: number;
+  truncateWordKey: string;
 }
 
 export interface LLMConfig {
@@ -68,7 +70,7 @@ export interface PluginConfig {
   appId: string;
   instanceId: string;
   usePlugin: boolean;
-  pluginCode: string;
+  pluginId: number;
 }
 
 export interface DriverConfig {

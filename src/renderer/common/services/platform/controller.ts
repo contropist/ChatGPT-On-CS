@@ -1,7 +1,10 @@
+import axios from 'axios';
 import {
   App,
   Instance,
   Keyword,
+  ReplaceKeyword,
+  TransferKeyword,
   LogBody,
   GenericConfig,
   LLMConfig,
@@ -10,6 +13,7 @@ import {
   DriverConfig,
   Message,
   Session,
+  Plugin,
   MessageModel,
 } from './platform';
 import { GET, POST } from '../common/api/request';
@@ -64,6 +68,88 @@ export async function updateReplyExcel(data: { path: string }) {
 
 export async function exportReplyExcel() {
   const data = await GET('/api/v1/reply/excel');
+  return data;
+}
+
+export async function getTransferList({
+  page,
+  pageSize,
+  appId,
+}: {
+  page: number;
+  pageSize: number;
+  appId?: string;
+}) {
+  const data = await GET<{
+    total: number;
+    data: TransferKeyword[];
+  }>('/api/v1/transfer/list', {
+    page,
+    page_size: pageSize,
+    app_id: appId,
+  });
+  return data;
+}
+
+export async function addTransferKeyword(keyword: TransferKeyword) {
+  await POST('/api/v1/transfer/create', keyword);
+}
+
+export async function updateTransferKeyword(keyword: TransferKeyword) {
+  await POST('/api/v1/transfer/update', keyword);
+}
+
+export async function deleteTransferKeyword(id: number) {
+  await POST('/api/v1/transfer/delete', { id });
+}
+
+export async function updateTransferExcel(data: { path: string }) {
+  await POST('/api/v1/transfer/excel', data);
+}
+
+export async function exportTransferExcel() {
+  const data = await GET('/api/v1/transfer/excel');
+  return data;
+}
+
+export async function getReplaceList({
+  page,
+  pageSize,
+  appId,
+}: {
+  page: number;
+  pageSize: number;
+  appId?: string;
+}) {
+  const data = await GET<{
+    total: number;
+    data: ReplaceKeyword[];
+  }>('/api/v1/replace/list', {
+    page,
+    page_size: pageSize,
+    app_id: appId,
+  });
+  return data;
+}
+
+export async function addReplaceKeyword(keyword: ReplaceKeyword) {
+  await POST('/api/v1/replace/create', keyword);
+}
+
+export async function updateReplaceKeyword(keyword: ReplaceKeyword) {
+  await POST('/api/v1/replace/update', keyword);
+}
+
+export async function deleteReplaceKeyword(id: number) {
+  await POST('/api/v1/replace/delete', { id });
+}
+
+export async function updateReplaceExcel(data: { path: string }) {
+  await POST('/api/v1/replace/excel', data);
+}
+
+export async function exportReplaceExcel() {
+  const data = await GET('/api/v1/replace/excel');
   return data;
 }
 
@@ -242,4 +328,50 @@ export async function getMessages({ sessionId }: { sessionId: number }) {
 export async function exportMessageExcel() {
   const data = await GET('/api/v1/message/excel');
   return data;
+}
+
+export async function getCustomPluginList() {
+  const data = await GET<{
+    data: Plugin[];
+  }>('/api/v1/plugin/list');
+  return data;
+}
+
+export async function getCustomPluginDetail(id: number) {
+  const data = await GET<{
+    data: Plugin;
+  }>('/api/v1/plugin/detail', { id });
+  return data;
+}
+
+export async function addCustomPlugin(plugin: Plugin) {
+  const data = await POST<{
+    data: Plugin;
+  }>('/api/v1/plugin/create', plugin);
+  return data;
+}
+
+export async function updateCustomPlugin(plugin: Plugin) {
+  await POST('/api/v1/plugin/update', plugin);
+}
+
+export async function deleteCustomPlugin(id: number) {
+  await POST('/api/v1/plugin/delete', { id });
+}
+
+export async function getThirdPartyPluginList(): Promise<Plugin[] | null> {
+  try {
+    const data = await axios.get(
+      'https://update.wizgadg.top/statics/chatgpt-on-cs/plugins.json',
+    );
+    console.log(data);
+    if (data.status === 200) {
+      return data.data;
+    }
+
+    return null;
+  } catch (e) {
+    console.error(e);
+    return null;
+  }
 }

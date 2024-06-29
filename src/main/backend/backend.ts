@@ -284,7 +284,7 @@ class BKServer {
           keyword: item.keyword,
           reply: item.reply,
           mode: item.mode,
-          ptf_name: ptf ? ptf.name : '全局',
+          app_name: ptf ? ptf.name : '全局',
         };
 
         results.push(result);
@@ -349,6 +349,296 @@ class BKServer {
           message: error instanceof Error ? error.message : String(error),
         });
       }
+    });
+
+    this.app.get('/api/v1/transfer/list', async (req, res) => {
+      const { page = 1, page_size: pageSize, app_id: appId } = req.query;
+
+      const query = {
+        page,
+        pageSize,
+        appId,
+      };
+
+      const { total, transferKeywords } =
+        // @ts-ignore
+        await this.keywordReplyController.listTransferKeywords(query);
+
+      const data = transferKeywords;
+      const ptfs = await this.dispatchService.getAllPlatforms();
+
+      const ptfMap = new Map(ptfs.map((ptf) => [ptf.id, ptf]));
+      const results: any[] = [];
+      data.forEach((item) => {
+        const ptfId = item.app_id;
+        const ptf = ptfMap.get(ptfId);
+
+        const result = {
+          id: item.id,
+          keyword: item.keyword,
+          has_regular: item.has_regular,
+          fuzzy: item.fuzzy,
+          app_id: item.app_id,
+          app_name: ptf ? ptf.name : '全局',
+        };
+
+        results.push(result);
+      });
+
+      res.json({
+        success: true,
+        data: results,
+        total,
+        page,
+        page_size: pageSize,
+      });
+    });
+
+    this.app.post('/api/v1/transfer/create', async (req, res) => {
+      const { app_id: appId, keyword, has_regular, fuzzy } = req.body;
+      await this.keywordReplyController.createTransfer({
+        app_id: appId,
+        keyword,
+        has_regular,
+        fuzzy,
+      });
+      res.json({ success: true });
+    });
+
+    this.app.post('/api/v1/transfer/update', async (req, res) => {
+      const { id, app_id: appId, keyword, has_regular, fuzzy } = req.body;
+      await this.keywordReplyController.updateTransfer(id, {
+        app_id: appId,
+        keyword,
+        has_regular,
+        fuzzy,
+      });
+      res.json({ success: true });
+    });
+
+    this.app.post('/api/v1/transfer/delete', async (req, res) => {
+      const { id } = req.body;
+      await this.keywordReplyController.deleteTransfer(id);
+      res.json({ success: true });
+    });
+
+    this.app.post('/api/v1/transfer/excel', async (req, res) => {
+      const { path } = req.body;
+      try {
+        await this.keywordReplyController.importTransferExcel(path);
+        res.json({ success: true });
+      } catch (error) {
+        // @ts-ignore
+        res.status(500).json({ success: false, message: error.message });
+      }
+    });
+
+    this.app.get('/api/v1/transfer/excel', async (req, res) => {
+      try {
+        const path = await this.keywordReplyController.exportTransferExcel();
+        shell.openPath(path);
+        res.json({ success: true, data: path });
+      } catch (error) {
+        res.status(500).json({
+          success: false,
+          message: error instanceof Error ? error.message : String(error),
+        });
+      }
+    });
+
+    this.app.get('/api/v1/replace/list', async (req, res) => {
+      const { page = 1, page_size: pageSize, app_id: appId } = req.query;
+
+      const query = {
+        page,
+        pageSize,
+        appId,
+      };
+
+      const { total, replaceKeywords } =
+        // @ts-ignore
+        await this.keywordReplyController.listReplaceKeywords(query);
+
+      const data = replaceKeywords;
+      const ptfs = await this.dispatchService.getAllPlatforms();
+
+      const ptfMap = new Map(ptfs.map((ptf) => [ptf.id, ptf]));
+      const results: any[] = [];
+      data.forEach((item) => {
+        const ptfId = item.app_id;
+        const ptf = ptfMap.get(ptfId);
+
+        const result = {
+          id: item.id,
+          keyword: item.keyword,
+          replace: item.replace,
+          app_id: item.app_id,
+          app_name: ptf ? ptf.name : '全局',
+        };
+
+        results.push(result);
+      });
+
+      res.json({
+        success: true,
+        data: results,
+        total,
+        page,
+        page_size: pageSize,
+      });
+    });
+
+    this.app.post('/api/v1/replace/create', async (req, res) => {
+      const { app_id: appId, keyword, replace } = req.body;
+      await this.keywordReplyController.createReplace({
+        app_id: appId,
+        keyword,
+        replace,
+      });
+      res.json({ success: true });
+    });
+
+    this.app.post('/api/v1/replace/update', async (req, res) => {
+      const { id, app_id: appId, keyword, replace } = req.body;
+      await this.keywordReplyController.updateReplace(id, {
+        app_id: appId,
+        keyword,
+        replace,
+      });
+      res.json({ success: true });
+    });
+
+    this.app.post('/api/v1/replace/delete', async (req, res) => {
+      const { id } = req.body;
+      await this.keywordReplyController.deleteReplace(id);
+      res.json({ success: true });
+    });
+
+    this.app.post('/api/v1/replace/excel', async (req, res) => {
+      const { path } = req.body;
+      try {
+        await this.keywordReplyController.importReplaceExcel(path);
+        res.json({ success: true });
+      } catch (error) {
+        // @ts-ignore
+        res.status(500).json({ success: false, message: error.message });
+      }
+    });
+
+    this.app.get('/api/v1/replace/excel', async (req, res) => {
+      try {
+        const path = await this.keywordReplyController.exportReplaceExcel();
+        shell.openPath(path);
+        res.json({ success: true, data: path });
+      } catch (error) {
+        res.status(500).json({
+          success: false,
+          message: error instanceof Error ? error.message : String(error),
+        });
+      }
+    });
+
+    this.app.get('/api/v1/plugin/list', async (req, res) => {
+      const plugins = await this.configController.getAllCustomPlugins();
+      const results = plugins.map((plugin) => {
+        return {
+          id: plugin.id,
+          code: plugin.code,
+          title: plugin.title,
+          description: plugin.description,
+          icon: plugin.icon,
+          source: plugin.source,
+          author: plugin.author,
+          type: plugin.type,
+          tags: JSON.parse(plugin.tags || '[]'),
+        };
+      });
+      res.json({
+        success: true,
+        data: results,
+      });
+    });
+
+    this.app.get('/api/v1/plugin/detail', async (req, res) => {
+      const { id } = req.query;
+      const plugin = await this.configController.getPluginConfig(Number(id));
+      if (!plugin) {
+        res.json({
+          success: false,
+          data: null,
+        });
+        return;
+      }
+
+      const tags = JSON.parse(plugin.tags || '[]');
+      res.json({
+        success: true,
+        data: {
+          id: plugin.id,
+          code: plugin.code,
+          title: plugin.title,
+          description: plugin.description,
+          icon: plugin.icon,
+          source: plugin.source,
+          author: plugin.author,
+          type: plugin.type,
+          tags,
+        },
+      });
+    });
+
+    this.app.post('/api/v1/plugin/create', async (req, res) => {
+      const { code, source, author, description, icon, tags, title } = req.body;
+      const plugin = await this.configController.createCustomPlugin({
+        code,
+        source,
+        author,
+        description,
+        icon,
+        tags: JSON.stringify(tags),
+        title,
+      });
+      if (!plugin) {
+        res.json({
+          success: false,
+          data: null,
+        });
+        return;
+      }
+
+      res.json({
+        success: true,
+        data: {
+          id: plugin.id,
+          code: plugin.code,
+          title: plugin.title,
+          description: plugin.description,
+          icon: plugin.icon,
+          source: plugin.source,
+          author: plugin.author,
+          type: plugin.type,
+          tags,
+        },
+      });
+    });
+
+    this.app.post('/api/v1/plugin/update', async (req, res) => {
+      const { id, code, description, icon, tags, title } = req.body;
+      await this.configController.updateCustomPlugin({
+        pluginId: id,
+        code,
+        description,
+        icon,
+        tags: JSON.stringify(tags),
+        title,
+      });
+      res.json({ success: true });
+    });
+
+    this.app.post('/api/v1/plugin/delete', async (req, res) => {
+      const { id } = req.body;
+      await this.configController.deleteCustomPlugin(id);
+      res.json({ success: true });
     });
 
     // Health check endpoint
